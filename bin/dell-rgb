@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""Dell G15 Keyboard RGB Command-Line Interface."""
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.expanduser("~/.local/lib"))
+from dell_g15_rgb.controller import DellG15RGB, SPECTRUM
+
+
+def parse_hex_color(hex_str):
+    hex_str = hex_str.lstrip("#")
+    if len(hex_str) == 3:
+        hex_str = "".join(c * 2 for c in hex_str)
+    if len(hex_str) != 6:
+        raise ValueError(f"Invalid hex color: {hex_str}")
+    return int(hex_str[0:2], 16), int(hex_str[2:4], 16), int(hex_str[4:6], 16)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Control Dell G15 5515 AlienFX Keyboard RGB lighting")
+    subparsers = parser.add_subparsers(dest="command", help="Lighting commands")
+
+    # static
+    p_static = subparsers.add_parser("static", help="Set a solid static color across the keyboard")
+    p_static.add_argument("color", help="Hex color code (e.g. ff0000 or #00aaff)")
+    p_static.add_argument("--brightness", "-b", type=int, default=100, help="Brightness (0-100)")
+
+    # zones
+    p_zones = subparsers.add_parser("zones", help="Set custom colors for each of the 4 zones")
+    p_zones.add_argument("zone1", help="Zone 1 (Left) hex color")
+    p_zones.add_argument("zone2", help="Zone 2 (Middle-Left) hex color")
+    p_zones.add_argument("zone3", help="Zone 3 (Middle-Right) hex color")
+    p_zones.add_argument("zone4", help="Zone 4 (Right) hex color")
+    p_zones.add_argument("--brightness", "-b", type=int, default=100, help="Brightness (0-100)")
+
+    # rainbow
+    p_rainbow = subparsers.add_parser("rainbow", help="Smooth dynamic rainbow wave across all zones")
+    p_rainbow.add_argument("--speed", "-s", type=int, default=5, help="Speed 1 (slow) to 10 (fast)")
+    p_rainbow.add_argument("--brightness", "-b", type=int, default=100, help="Brightness (0-100)")
+
+    # pulse
+    p_pulse = subparsers.add_parser("pulse", help="Breathing / pulse effect with a single color")
+    p_pulse.add_argument("color", help="Hex color code (e.g. 0088ff)")
+    p_pulse.add_argument("--speed", "-s", type=int, default=5, help="Speed 1 to 10")
+    p_pulse.add_argument("--brightness", "-b", type=int, default=100, help="Brightness (0-100)")
+
+    # morph
+    p_morph = subparsers.add_parser("morph", help="Morph smoothly between two colors")
+    p_morph.add_argument("color1", help="First hex color")
+    p_morph.add_argument("color2", help="Second hex color")
+    p_morph.add_argument("--speed", "-s", type=int, default=5, help="Speed 1 to 10")
+    p_morph.add_argument("--brightness", "-b", type=int, default=100, help="Brightness (0-100)")
+
+    # cycle
+    p_cycle = subparsers.add_parser("cycle", help="Cycle through color spectrum on all zones together")
+    p_cycle.add_argument("--speed", "-s", type=int, default=5, help="Speed 1 to 10")
+    p_cycle.add_argument("--brightness", "-b", type=int, default=100, help="Brightness (0-100)")
+
+    # brightness
+    p_bright = subparsers.add_parser("brightness", help="Set backlight brightness")
+    p_bright.add_argument("value", type=int, help="Brightness 0 to 100")
+
+    # off / on
+    subparsers.add_parser("off", help="Turn off keyboard backlighting")
+    subparsers.add_parser("on", help="Turn on keyboard backlighting (restores saved profile)")
+
+    # restore
+    subparsers.add_parser("restore", help="Restore last saved RGB profile (used at boot/login)")
+
+    # gui
+    subparsers.add_parser("gui", help="Launch the graphical control panel")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    if args.command == "gui":
+        os.execv(os.path.expanduser("~/.local/bin/dell-g15-rgb-gui"), [sys.argv[0]])
+
+    try:
+        rgb = DellG15RGB()
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.command == "static":
+        r, g, b = parse_hex_color(args.color)
+        rgb.set_static(r, g, b, brightness=args.brightness)
+        print(f"[✓] Static color #{r:02x}{g:02x}{b:02x} applied (Brightness: {args.brightness}%).")
+    elif args.command == "zones":
+        colors = [parse_hex_color(c) for c in [args.zone1, args.zone2, args.zone3, args.zone4]]
+        rgb.set_zones(colors, brightness=args.brightness)
+        print(f"[✓] 4-Zone custom colors applied (Brightness: {args.brightness}%).")
+    elif args.command == "rainbow":
+        rgb.set_rainbow(speed=args.speed, brightness=args.brightness)
+        print(f"[✓] Rainbow wave applied (Speed: {args.speed}, Brightness: {args.brightness}%).")
+    elif args.command == "pulse":
+        r, g, b = parse_hex_color(args.color)
+        rgb.set_pulse(r, g, b, speed=args.speed, brightness=args.brightness)
+        print(f"[✓] Pulse effect #{r:02x}{g:02x}{b:02x} applied (Speed: {args.speed}).")
+    elif args.command == "morph":
+        c1 = parse_hex_color(args.color1)
+        c2 = parse_hex_color(args.color2)
+        rgb.set_morph(c1, c2, speed=args.speed, brightness=args.brightness)
+        print(f"[✓] Morph effect applied between #{c1[0]:02x}{c1[1]:02x}{c1[2]:02x} and #{c2[0]:02x}{c2[1]:02x}{c2[2]:02x}.")
+    elif args.command == "cycle":
+        rgb.set_cycle(speed=args.speed, brightness=args.brightness)
+        print(f"[✓] Spectrum cycle applied (Speed: {args.speed}).")
+    elif args.command == "brightness":
+        rgb.set_brightness(args.value)
+        print(f"[✓] Brightness set to {args.value}%.")
+    elif args.command == "off":
+        rgb.turn_off()
+        print("[✓] Keyboard backlight turned off.")
+    elif args.command == "on":
+        rgb.turn_on()
+        print("[✓] Keyboard backlight turned on.")
+    elif args.command == "restore":
+        rgb.restore_state()
+        print("[✓] Saved RGB lighting profile restored.")
+
+
+if __name__ == "__main__":
+    main()
