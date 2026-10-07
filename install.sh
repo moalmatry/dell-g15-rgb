@@ -57,7 +57,9 @@ chmod +x "$BIN_DIR/dell-rgb" "$BIN_DIR/dell-g15-rgb-gui"
 echo "[4/6] Installing desktop launcher and app icon..."
 cp -p "$SCRIPT_DIR/assets/dell-g15-rgb.svg" "$ICONS_DIR/"
 cp -p "$SCRIPT_DIR/assets/dell-g15-rgb.desktop" "$APPS_DIR/"
+sed -i "s|Exec=dell-g15-rgb-gui|Exec=$BIN_DIR/dell-g15-rgb-gui|g" "$APPS_DIR/dell-g15-rgb.desktop"
 cp -p "$SCRIPT_DIR/assets/dell-g15-rgb-restore.desktop" "$AUTOSTART_DIR/"
+sed -i "s|Exec=dell-rgb restore|Exec=$BIN_DIR/dell-rgb restore|g" "$AUTOSTART_DIR/dell-g15-rgb-restore.desktop"
 
 # Update desktop & icon caches if available
 if command -v update-desktop-database &>/dev/null; then

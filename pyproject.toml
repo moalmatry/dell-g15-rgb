@@ -1,23 +1,46 @@
 [project]
 name = "dell-g15-rgb"
 version = "0.1.0"
-description = "AlienFX RGB keyboard driver, CLI, and GTK 3 GUI for Dell G15 laptops"
+description = "Native Linux driver, CLI, and GTK 3 GUI for Dell G15 & Alienware AlienFX 4-Zone RGB keyboard (187c:0550)."
 authors = [
     { name = "moalmatry" }
 ]
 license = "MIT"
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = ["dell", "g15", "alienfx", "rgb", "keyboard", "linux"]
+keywords = [
+    "dell",
+    "dell-g15",
+    "dell-5515",
+    "dell-5520",
+    "alienfx",
+    "alienware",
+    "rgb-keyboard",
+    "keyboard-backlight",
+    "linux",
+    "linux-driver",
+    "gtk3",
+    "hidraw",
+    "openrgb",
+    "stuck-on-red",
+]
 classifiers = [
     "Environment :: X11 Applications :: GTK",
     "Operating System :: POSIX :: Linux",
     "Topic :: System :: Hardware",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 dependencies = []
 
 [project.urls]
+Homepage = "https://github.com/moalmatry/dell-g15-rgb"
 Repository = "https://github.com/moalmatry/dell-g15-rgb"
+Issues = "https://github.com/moalmatry/dell-g15-rgb/issues"
 
 [project.scripts]
 dell-rgb = "dell_g15_rgb.cli:main"

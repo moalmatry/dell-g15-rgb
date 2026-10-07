@@ -2,12 +2,30 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.10+](https://img.shields.io/badge/python-3.10+-brightgreen.svg)](https://www.python.org/)
-[![Platform: Linux](https://img.shields.io/badge/platform-Linux-orange.svg)]()
-[![Hardware: AW--ELC](https://img.shields.io/badge/hardware-187c%3A0550-purple.svg)]()
+[![Platform: Linux](https://img.shields.io/badge/platform-Linux-orange.svg)](https://www.kernel.org/)
+[![Hardware: AW--ELC](https://img.shields.io/badge/hardware-187c%3A0550-purple.svg)](https://linux-hardware.org/?id=usb:187c-0550)
+[![Poetry Managed](https://img.shields.io/badge/packaging-poetry-cyan.svg)](https://python-poetry.org/)
+[![GitHub Stars](https://img.shields.io/github/stars/moalmatry/dell-g15-rgb?style=flat&color=yellow)](https://github.com/moalmatry/dell-g15-rgb/stargazers)
 
 Native Linux driver, CLI, and GTK 3 graphical control panel for **Dell G15 (5515 / 5520)** laptops equipped with the **Alienware AW-ELC (187c:0550)** 4-Zone RGB keyboard lighting controller.
 
 Fixes the infamous **"stuck on red"** backlight issue on Linux without needing heavy daemons or Windows virtual machines.
+
+---
+
+## 📌 Table of Contents
+- [Features](#-features)
+- [Why Was the Keyboard Stuck on Red?](#-why-was-the-keyboard-stuck-on-red)
+- [Supported Hardware](#-supported-hardware)
+- [Installation](#-installation)
+- [Usage](#%EF%B8%8F-usage)
+  - [Graphical App (GUI)](#graphical-app-gui)
+  - [Command-Line Interface (`dell-rgb`)](#command-line-interface-dell-rgb)
+- [Supported Linux Distributions](#-supported-linux-distributions)
+- [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
+- [Dell Linux Ecosystem](#-dell-linux-ecosystem)
+- [Uninstallation](#%EF%B8%8F-uninstallation)
+- [License](#-license)
 
 ---
 
@@ -201,6 +219,14 @@ Dell's Alienware AW-ELC controller does not expose standard USB HID interrupt en
 
 **0% CPU, 0% RAM.** Once a color or effect is sent, the controller's onboard microcode executes the lighting pattern autonomously. The CLI and GUI do not keep background processes or daemons running.
 </details>
+
+---
+
+## 🌐 Dell Linux Ecosystem
+
+Supercharge your Dell gaming laptop on Linux with companion tools from this suite:
+
+* ⚡ **[dell-gmode](https://github.com/moalmatry/dell-gmode)** — Native Linux background daemon and CLI utility to enable the **Fn+F9 Game Shift (G-Mode)** hardware key, 100% maximum fan cooling boost via Alienware WMAX ACPI, and kernel CPU/GPU performance power profiles.
 
 ---
 
