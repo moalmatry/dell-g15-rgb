@@ -2,7 +2,7 @@
 Type=Application
 Name=Dell G15 Keyboard RGB
 Comment=Control AlienFX 4-Zone RGB keyboard backlighting and effects
-Exec=/home/moalmatry/.local/bin/dell-g15-rgb-gui
+Exec=dell-g15-rgb-gui
 Icon=dell-g15-rgb
 Terminal=false
 Categories=Utility;Settings;HardwareSettings;Game;

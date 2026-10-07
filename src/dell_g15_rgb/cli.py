@@ -1,11 +1,8 @@
-#!/usr/bin/env python3
 """Dell G15 Keyboard RGB Command-Line Interface."""
 import argparse
-import os
 import sys
 
-sys.path.insert(0, os.path.expanduser("~/.local/lib"))
-from dell_g15_rgb.controller import DellG15RGB, SPECTRUM
+from dell_g15_rgb.controller import DellG15RGB
 
 
 def parse_hex_color(hex_str):
@@ -77,7 +74,9 @@ def main():
         sys.exit(1)
 
     if args.command == "gui":
-        os.execv(os.path.expanduser("~/.local/bin/dell-g15-rgb-gui"), [sys.argv[0]])
+        from dell_g15_rgb.gui import main as gui_main
+        gui_main()
+        return
 
     try:
         rgb = DellG15RGB()

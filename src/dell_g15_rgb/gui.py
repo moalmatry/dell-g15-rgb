@@ -7,8 +7,6 @@ import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import Gtk, Gdk, GLib
-
-sys.path.insert(0, os.path.expanduser("~/.local/lib"))
 from dell_g15_rgb.controller import DellG15RGB, SPECTRUM
 
 PRESET_COLORS = [

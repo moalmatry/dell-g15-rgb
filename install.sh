@@ -7,7 +7,6 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="$HOME/.local/bin"
-LIB_DIR="$HOME/.local/lib/dell_g15_rgb"
 APPS_DIR="$HOME/.local/share/applications"
 ICONS_DIR="$HOME/.local/share/icons/hicolor/scalable/apps"
 AUTOSTART_DIR="$HOME/.config/autostart"
@@ -17,23 +16,41 @@ echo "    Dell G15 AlienFX Keyboard RGB Controller Installer    "
 echo "=========================================================="
 echo ""
 
-# 1. Check Python and dependencies
+# 1. Check Python and Poetry
 echo "[1/6] Checking system dependencies..."
 if ! command -v python3 &>/dev/null; then
     echo "Error: Python 3 is required. Please install python3."
     exit 1
 fi
 
+if ! command -v poetry &>/dev/null; then
+    echo "Error: Poetry is required but not installed."
+    echo "Please install Poetry using one of the following methods:"
+    echo "  • Official installer: curl -sSL https://install.python-poetry.org | python3 -"
+    echo "  • Or via apt:         sudo apt install python3-poetry"
+    exit 1
+fi
+
 # 2. Create directories
 echo "[2/6] Preparing installation directories..."
-mkdir -p "$BIN_DIR" "$LIB_DIR" "$APPS_DIR" "$ICONS_DIR" "$AUTOSTART_DIR"
+mkdir -p "$BIN_DIR" "$APPS_DIR" "$ICONS_DIR" "$AUTOSTART_DIR"
 
-# 3. Copy files
-echo "[3/6] Installing driver, CLI, and GUI applications..."
-cp -p "$SCRIPT_DIR/lib/dell_g15_rgb/__init__.py" "$LIB_DIR/"
-cp -p "$SCRIPT_DIR/lib/dell_g15_rgb/controller.py" "$LIB_DIR/"
-cp -p "$SCRIPT_DIR/bin/dell-rgb" "$BIN_DIR/"
-cp -p "$SCRIPT_DIR/bin/dell-g15-rgb-gui" "$BIN_DIR/"
+# 3. Install Python package via Poetry
+echo "[3/6] Setting up Poetry environment and installing package..."
+cd "$SCRIPT_DIR"
+
+# Allow virtualenv to access system-site-packages for PyGObject / GTK
+poetry config virtualenvs.options.system-site-packages true --local 2>/dev/null || true
+poetry install
+
+VENV_PATH="$(poetry env info -p)"
+if [ -z "$VENV_PATH" ] || [ ! -d "$VENV_PATH" ]; then
+    echo "Error: Failed to locate Poetry virtual environment."
+    exit 1
+fi
+
+ln -sf "$VENV_PATH/bin/dell-rgb" "$BIN_DIR/dell-rgb"
+ln -sf "$VENV_PATH/bin/dell-g15-rgb-gui" "$BIN_DIR/dell-g15-rgb-gui"
 chmod +x "$BIN_DIR/dell-rgb" "$BIN_DIR/dell-g15-rgb-gui"
 
 # 4. Desktop entry and Icon
@@ -51,14 +68,22 @@ if command -v gtk-update-icon-cache &>/dev/null; then
 fi
 
 # 5. udev Rules & SMBIOS protection
-echo "[5/6] Setting up hardware permissions (requires sudo)..."
-sudo cp "$SCRIPT_DIR/udev/99-dell-alienfx-rgb.rules" /etc/udev/rules.d/
-sudo udevadm control --reload-rules
-sudo udevadm trigger
+echo "[5/6] Checking hardware permissions..."
+if [ -f "/etc/udev/rules.d/99-dell-alienfx-rgb.rules" ] && cmp -s "$SCRIPT_DIR/udev/99-dell-alienfx-rgb.rules" "/etc/udev/rules.d/99-dell-alienfx-rgb.rules"; then
+    echo "udev rule is already installed and up-to-date."
+else
+    echo "Installing udev rules (requires sudo)..."
+    sudo cp "$SCRIPT_DIR/udev/99-dell-alienfx-rgb.rules" /etc/udev/rules.d/
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger
+fi
 
-# Prevent SMBIOS writes that lock the controller into red safe-mode
-echo "Masking dangerous SMBIOS keyboard backlight service..."
-sudo systemctl mask "systemd-backlight@leds:dell::kbd_backlight.service" 2>/dev/null || true
+if systemctl is-enabled "systemd-backlight@leds:dell::kbd_backlight.service" 2>/dev/null | grep -q "masked"; then
+    echo "SMBIOS keyboard backlight service is already masked."
+else
+    echo "Masking dangerous SMBIOS keyboard backlight service (requires sudo)..."
+    sudo systemctl mask "systemd-backlight@leds:dell::kbd_backlight.service" 2>/dev/null || true
+fi
 
 # 6. Apply initial state / restore
 echo "[6/6] Restoring RGB profile..."

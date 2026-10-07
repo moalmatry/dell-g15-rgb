@@ -2,7 +2,7 @@
 Type=Application
 Name=Dell G15 RGB State Restore
 Comment=Restores saved keyboard RGB lighting effect at user login
-Exec=/home/moalmatry/.local/bin/dell-rgb restore
+Exec=dell-rgb restore
 Hidden=false
 NoDisplay=true
 X-GNOME-Autostart-enabled=true

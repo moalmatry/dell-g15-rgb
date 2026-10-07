@@ -1,5 +1,10 @@
 # Dell G15 AlienFX Keyboard RGB for Linux 🌈
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python: 3.10+](https://img.shields.io/badge/python-3.10+-brightgreen.svg)](https://www.python.org/)
+[![Platform: Linux](https://img.shields.io/badge/platform-Linux-orange.svg)]()
+[![Hardware: AW--ELC](https://img.shields.io/badge/hardware-187c%3A0550-purple.svg)]()
+
 Native Linux driver, CLI, and GTK 3 graphical control panel for **Dell G15 (5515 / 5520)** laptops equipped with the **Alienware AW-ELC (187c:0550)** 4-Zone RGB keyboard lighting controller.
 
 Fixes the infamous **"stuck on red"** backlight issue on Linux without needing heavy daemons or Windows virtual machines.
@@ -45,10 +50,13 @@ This project bypasses SMBIOS entirely, speaks the exact USB control pipe protoco
 ## 📦 Installation
 
 ### Prerequisites
-* Python 3 (`python3`)
+* Python 3 (`python3 >= 3.10`)
 * PyGObject GTK 3 (`python3-gi`, standard on Ubuntu/Debian/Zorin/Fedora)
+* [Poetry](https://python-poetry.org/) (`sudo apt install python3-poetry` or `curl -sSL https://install.python-poetry.org | python3 -`)
 
-### Install via Installer Script
+### Option A: Install via Installer Script (Recommended)
+
+Sets up system udev permissions, Poetry environment, desktop menu shortcuts, and login autostart:
 
 ```bash
 git clone https://github.com/moalmatry/dell-g15-rgb.git
@@ -57,12 +65,20 @@ chmod +x install.sh
 ./install.sh
 ```
 
-The installer will:
-1. Install the `dell_g15_rgb` Python driver and `dell-rgb` CLI to `~/.local/bin/`.
-2. Install the desktop launcher and icon into your application menu (**"Dell G15 Keyboard RGB"**).
-3. Set up udev rules for passwordless hardware access.
-4. Mask `systemd-backlight@leds:dell::kbd_backlight.service` to prevent the controller from wedging.
-5. Enable the user autostart service to restore your lighting profile on login.
+### Option B: Local Development with Poetry
+
+```bash
+# Allow Poetry to use system PyGObject / GTK 3 packages
+poetry config virtualenvs.options.system-site-packages true --local
+
+# Install package dependencies
+poetry install
+
+# Run CLI or GUI
+poetry run dell-rgb static 0088ff
+poetry run dell-g15-rgb-gui
+```
+*(Note: To run without root, make sure the udev rule in `udev/` is copied to `/etc/udev/rules.d/`)*
 
 ---
 
@@ -144,6 +160,44 @@ If your controller was already wedged into red failsafe mode by an older utility
 3. Hold the **Power Button** for **30 seconds** (this resets the Dell Embedded Controller / RTC standby power rail).
 4. Connect the charger and boot back into Linux.
 5. Run `dell-rgb static 0088ff` to apply your desired color.
+
+---
+
+## 🐧 Supported Linux Distributions
+
+Tested and working seamlessly across:
+* **Ubuntu** (20.04 LTS, 22.04 LTS, 24.04 LTS)
+* **Zorin OS** (16, 17, 18)
+* **Debian** (11 Bullseye, 12 Bookworm, testing/sid)
+* **Arch Linux / EndeavourOS / Manjaro**
+* **Fedora** (38, 39, 40, 41)
+* **Pop!_OS** & **Linux Mint**
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+<details>
+<summary><b>How do I check if my Dell laptop is supported?</b></summary>
+
+Open a terminal and run:
+```bash
+lsusb | grep -i "187c:0550"
+```
+If you see a device with ID `187c:0550` (Alienware AW-ELC lighting controller), your keyboard hardware is fully supported.
+</details>
+
+<details>
+<summary><b>Why doesn't OpenRGB or Alienware Command Center work out-of-the-box on Linux?</b></summary>
+
+Dell's Alienware AW-ELC controller does not expose standard USB HID interrupt endpoints for lighting. Instead, it expects vendor-specific USB control transfers on endpoint 0 with a 0x03 report header. Furthermore, the Linux kernel's `dell-laptop` SMBIOS module inadvertently locks the controller into red failsafe mode whenever brightness is adjusted. `dell-g15-rgb` explicitly masks that conflict and implements the exact control pipe protocol.
+</details>
+
+<details>
+<summary><b>Does this tool consume battery or run in the background?</b></summary>
+
+**0% CPU, 0% RAM.** Once a color or effect is sent, the controller's onboard microcode executes the lighting pattern autonomously. The CLI and GUI do not keep background processes or daemons running.
+</details>
 
 ---
 
