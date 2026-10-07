@@ -51,7 +51,7 @@ This project bypasses SMBIOS entirely, speaks the exact USB control pipe protoco
 ### Install via Installer Script
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/dell-g15-rgb.git
+git clone https://github.com/moalmatry/dell-g15-rgb.git
 cd dell-g15-rgb
 chmod +x install.sh
 ./install.sh
