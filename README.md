@@ -16,6 +16,7 @@ Fixes the infamous **"stuck on red"** backlight issue on Linux without needing h
 ## 📌 Table of Contents
 - [Features](#-features)
 - [Why Was the Keyboard Stuck on Red?](#-why-was-the-keyboard-stuck-on-red)
+- [How It Works](#-how-it-works)
 - [Supported Hardware](#-supported-hardware)
 - [Installation](#-installation)
 - [Usage](#%EF%B8%8F-usage)
@@ -54,6 +55,38 @@ On Linux, Dell G15 laptops with AlienFX RGB keyboards frequently get stuck on so
 3. **16-Zone Architecture (G15 5515):** The 5515 Ryzen Edition reports 16 internal LED addresses (4 per physical keyboard section), requiring a specific packet mapping and dimming payload.
 
 This project bypasses SMBIOS entirely, speaks the exact USB control pipe protocol reverse-engineered from AWCC, and permanently masks the problematic systemd-backlight writer.
+
+---
+
+## 🔍 How It Works
+
+```mermaid
+flowchart TD
+    User["🖥️ CLI (dell-rgb) or GTK 3 GUI"] --> Controller["Python Controller Engine"]
+    Controller --> Detect["🔍 Auto-Detect Architecture (GET_PLATFORM 0x20 0x02)<br/>16-Zone (5515 AMD) / 20-Zone (5520 Intel)"]
+    Detect --> USB["🔌 USB Control Pipe via /dev/hidraw<br/>(HIDIOCSOUTPUT & HIDIOCGINPUT)"]
+    USB --> Microcode["🧠 AW-ELC (187c:0550) Hardware Microcode"]
+    Microcode --> Slot1["⚡ Slot 0xFFFF: Active Live Display"]
+    Microcode --> Slot2["💾 Slot 0x0061: Persistent Boot Default"]
+    Microcode --> Slot3["🔌 Slots 0x5C/0x5D/0x5F: AC & Battery Sync"]
+```
+
+### 1. Direct USB Control Pipe Transport (`/dev/hidraw`)
+Unlike typical RGB keyboards that use standard HID interrupt endpoints, the Alienware AW-ELC (`187c:0550`) controller listens exclusively to low-level **USB control transfers** on endpoint 0 (`HIDIOCSOUTPUT` / `HIDIOCGINPUT`) with a `0x03` report header. `dell-g15-rgb` bypasses the Linux kernel's problematic `dell-laptop` SMBIOS driver entirely, writing raw control packets directly to `/dev/hidraw*`.
+
+### 2. Dynamic Platform & Zone Detection
+On initialization, the driver queries the lighting controller with `GET_PLATFORM` (`0x20, 0x02`):
+* **Dell G15 5515 (AMD Ryzen):** Identifies 16 internal LED addresses and groups them into 4 physical zones (4 LEDs per section: `[0..3]`, `[4..7]`, `[8..11]`, `[12..15]`).
+* **Dell G15 5520+ (Intel):** Identifies 20 internal LED addresses (`[0x10]`, `[0x11]`, `[0x12]`, `[0x13]`).
+
+### 3. Multi-Slot Hardware Persistence
+To guarantee that your lighting never reverts to stock red, the driver simultaneously programs three independent hardware memory slots in the microcode:
+1. **Immediate Execution Slot (`0xFFFF`):** Applies the colors or dynamic animations instantly to your keyboard.
+2. **Boot Default Slot (`0x0061`):** Saves the profile to onboard non-volatile memory so it persists across reboots.
+3. **Power Profile Slots (`0x5C`, `0x5D`, `0x5F`):** Keeps colors synchronized when plugging in or unplugging the AC adapter.
+
+### 4. Zero-Overhead Autonomous Execution
+Once an animation (Rainbow Wave, Spectrum Cycle, Pulse, Morph) is uploaded to the controller via series (`0x23`) and action (`0x24`) packets, the microcode onboard the keyboard controller executes the lighting loops autonomously in hardware. Neither the CLI nor the GUI run background processes or consume CPU/RAM while effects are playing.
 
 ---
 
