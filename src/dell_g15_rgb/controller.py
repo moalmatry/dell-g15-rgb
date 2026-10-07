@@ -253,8 +253,19 @@ class DellG15RGB:
     def turn_on(self):
         state = self.load_state()
         state.pop("off", None)
+        if state.get("brightness", 100) == 0:
+            state["brightness"] = 100
         self.save_state(state)
         self.restore_state()
+
+    def toggle(self):
+        state = self.load_state()
+        if state.get("off", False) or state.get("brightness", 100) == 0:
+            self.turn_on()
+            return True
+        else:
+            self.turn_off()
+            return False
 
     def save_state(self, state):
         os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)

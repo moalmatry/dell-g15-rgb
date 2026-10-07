@@ -135,6 +135,9 @@ dell-rgb off
 # Turn on backlight (restores saved profile)
 dell-rgb on
 
+# Toggle backlight on/off (ideal for keyboard shortcuts like Fn + F5)
+dell-rgb toggle
+
 # Restore saved profile manually
 dell-rgb restore
 ```

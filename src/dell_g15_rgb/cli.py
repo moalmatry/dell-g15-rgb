@@ -58,9 +58,10 @@ def main():
     p_bright = subparsers.add_parser("brightness", help="Set backlight brightness")
     p_bright.add_argument("value", type=int, help="Brightness 0 to 100")
 
-    # off / on
+    # off / on / toggle
     subparsers.add_parser("off", help="Turn off keyboard backlighting")
     subparsers.add_parser("on", help="Turn on keyboard backlighting (restores saved profile)")
+    subparsers.add_parser("toggle", help="Toggle keyboard backlighting on and off")
 
     # restore
     subparsers.add_parser("restore", help="Restore last saved RGB profile (used at boot/login)")
@@ -116,6 +117,9 @@ def main():
     elif args.command == "on":
         rgb.turn_on()
         print("[✓] Keyboard backlight turned on.")
+    elif args.command == "toggle":
+        is_on = rgb.toggle()
+        print(f"[✓] Keyboard backlight turned {'on' if is_on else 'off'}.")
     elif args.command == "restore":
         rgb.restore_state()
         print("[✓] Saved RGB lighting profile restored.")
