@@ -260,6 +260,7 @@ Dell's Alienware AW-ELC controller does not expose standard USB HID interrupt en
 Supercharge your Dell gaming laptop on Linux with companion tools from this suite:
 
 * ⚡ **[dell-gmode](https://github.com/moalmatry/dell-gmode)** — Native Linux background daemon and CLI utility to enable the **Fn+F9 Game Shift (G-Mode)** hardware key, 100% maximum fan cooling boost via Alienware WMAX ACPI, and kernel CPU/GPU performance power profiles.
+* 🔋 **[dell-power-manager](https://github.com/moalmatry/dell-power-manager)** — Native Linux GUI & CLI to limit battery charging thresholds (50%, 80%), manage SMBIOS power profiles, and protect battery health on Dell laptops.
 
 ---
 
